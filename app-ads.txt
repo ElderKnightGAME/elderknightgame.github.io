@@ -1,1 +1,11 @@
+#Admob
+google.com, pub-xxxxxxxxxxxxxxxx, DIRECT, f08c47fec0942fa0
+
+#Unity
+
+#ApplovinMax
+
+#MTG
+
+#A4G
 
