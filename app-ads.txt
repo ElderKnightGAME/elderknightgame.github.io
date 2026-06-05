@@ -9,3 +9,6 @@ google.com, pub-xxxxxxxxxxxxxxxx, DIRECT, f08c47fec0942fa0
 
 #A4G
 
+
+#Vungle
+vungle.com, 6854cefe5ae047001148fbb3, DIRECT, c107d686becd2d77
