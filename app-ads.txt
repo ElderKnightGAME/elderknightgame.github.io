@@ -1,6 +1,10 @@
 #Admob
 google.com, pub-xxxxxxxxxxxxxxxx, DIRECT, f08c47fec0942fa0
 
+#Pangle
+pangleglobal.com, 5030537, DIRECT
+pubmatic.com, 161490, RESELLER, 5d62403b186f2ace
+
 #Unity
 adform.com, 3400, RESELLER, 9f5210a2f0999e32
 mars.media, 1010442, RESELLER
