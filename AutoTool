@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSV 列数据批量替换工具</title>
+    <!-- 引入 PapaParse 用于精准解析和生成 CSV，处理逗号和换行问题 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; max-width: 800px; margin: 40px auto; padding: 0 20px; color: #333; line-height: 1.6; }
+        h2 { border-bottom: 2px solid #eaecef; padding-bottom: 10px; color: #24292e; }
+        .section { background: #f6f8fa; border: 1px solid #e1e4e8; padding: 20px; border-radius: 6px; margin-bottom: 20px; }
+        label { font-weight: bold; display: block; margin-bottom: 8px; }
+        textarea { width: 100%; height: 150px; padding: 10px; border: 1px solid #d1d5da; border-radius: 4px; box-sizing: border-box; font-family: monospace; }
+        .form-group { margin-bottom: 15px; }
+        input[type="text"], input[type="file"] { width: 100%; padding: 8px; border: 1px solid #d1d5da; border-radius: 4px; box-sizing: border-box; }
+        button { background-color: #2ea44f; color: white; border: none; padding: 12px 20px; font-size: 16px; font-weight: bold; border-radius: 6px; cursor: pointer; width: 100%; }
+        button:hover { background-color: #2c974b; }
+        #log { white-space: pre-wrap; background: #24292e; color: #f6f8fa; padding: 15px; border-radius: 6px; font-family: monospace; display: none; margin-top: 20px; }
+    </style>
+</head>
+<body>
+
+    <h2>📊 CSV 列数据批量替换工具</h2>
+
+    <!-- 1. 粘贴剪贴板数据 -->
+    <div class="section">
+        <label for="newData">1. 粘贴你要替换进去的新数据（一列）：</label>
+        <textarea id="newData" placeholder="在这里粘贴复制的一列数据，每行一个..."></textarea>
+    </div>
+
+    <!-- 2. 配置替换规则 -->
+    <div class="section">
+        <div class="form-group">
+            <label for="columnTarget">2. 要替换 CSV 中的哪一列？</label>
+            <input type="text" id="columnTarget" placeholder="输入列名（如: 电话）或 列索引（从0开始，如: 0 表示第一列）" value="0">
+            <small style="color: #6a737d;">提示：如果 CSV 有表头，请输入表头文字；如果没有表头，请输入数字索引（0, 1, 2...）。</small>
+        </div>
+    </div>
+
+    <!-- 3. 上传 CSV -->
+    <div class="section">
+        <label for="csvFiles">3. 选择需要替换的 CSV 文件（支持多选）：</label>
+        <input type="file" id="csvFiles" accept=".csv" multiple>
+    </div>
+
+    <!-- 4. 执行按钮 -->
+    <button onclick="processFiles()">⚡ 替换并下载新 CSV</button>
+
+    <!-- 日志输出 -->
+    <div id="log"></div>
+
+    <script>
+        function logMessage(msg) {
+            const logDiv = document.getElementById('log');
+            logDiv.style.display = 'block';
+            logDiv.innerHTML += msg + '\n';
+        }
+
+        async function processFiles() {
+            const logDiv = document.getElementById('log');
+            logDiv.innerHTML = ''; // 清空日志
+            
+            const rawDataText = document.getElementById('newData').value.trim();
+            const targetColumn = document.getElementById('columnTarget').value.trim();
+            const fileInput = document.getElementById('csvFiles');
+
+            if (!rawDataText) {
+                alert('请先粘贴要替换的新数据！');
+                return;
+            }
+            if (!targetColumn) {
+                alert('请指定要替换的列！');
+                return;
+            }
+            if (fileInput.files.length === 0) {
+                alert('请至少上传一个 CSV 文件！');
+                return;
+            }
+
+            // 将粘贴的数据按行切分为数组
+            const replacementList = rawDataText.split(/\r?\n/);
+            logMessage(`ℹ️ 已读取剪贴板数据，共 ${replacementList.length} 行。`);
+
+            // 遍历处理每个文件
+            for (let file of fileInput.files) {
+                logMessage(`正在处理文件: ${file.name}...`);
+                
+                try {
+                    const text = await file.text();
+                    
+                    // 使用 PapaParse 解析 CSV (保持原始数组格式，不自动转对象，方便处理无表头情况)
+                    const parsed = Papa.parse(text, { skipEmptyLines: true });
+                    let rows = parsed.data;
+
+                    if (rows.length === 0) {
+                        logMessage(`⚠️ 文件 ${file.name} 为空，跳过。`);
+                        continue;
+                    }
+
+                    // 确定目标列的索引
+                    let columnIndex = parseInt(targetColumn, 10);
+                    let startRow = 0;
+
+                    // 如果输入的不是纯数字，说明是按“表头名称”查找
+                    if (isNaN(columnIndex)) {
+                        const headerRow = rows[0];
+                        columnIndex = headerRow.indexOf(targetColumn);
+                        if (columnIndex === -1) {
+                            logMessage(`❌ 错误：在文件 ${file.name} 的表头中未找到列名 "${targetColumn}"，跳过此文件。`);
+                            continue;
+                        }
+                        startRow = 1; // 有表头，替换时跳过第一行
+                        logMessage(`👉 匹配到列名 "${targetColumn}"，位于第 ${columnIndex + 1} 列。`);
+                    } else {
+                        logMessage(`👉 使用数字索引，将替换第 ${columnIndex + 1} 列。`);
+                    }
+
+                    // 开始按行替换数据
+                    let replaceCount = 0;
+                    for (let i = startRow; i < rows.length; i++) {
+                        // 计算对应粘贴数据的索引（如果 CSV 行数多于粘贴的数据，则停止替换或留空）
+                        const replaceIndex = i - startRow;
+                        if (replaceIndex < replacementList.length) {
+                            rows[i][columnIndex] = replacementList[replaceIndex];
+                            replaceCount++;
+                        }
+                    }
+
+                    logMessage(`✅ 成功替换 ${replaceCount} 行数据。`);
+
+                    // 将新数据重新生成为 CSV 字符串
+                    const newCsvString = Papa.unparse(rows);
+
+                    // 触发浏览器下载
+                    downloadBlob(newCsvString, `new_${file.name}`, 'text/csv;charset=utf-8;');
+
+                } catch (err) {
+                    logMessage(`❌ 处理文件 ${file.name} 时发生异常: ${err.message}`);
+                }
+            }
+            logMessage('🎉 所有文件处理完毕！');
+        }
+
+        // 辅助函数：将字符串转为 Blob 并触发浏览器下载
+        function downloadBlob(content, filename, contentType) {
+            // 加上 BOM 头 (\uFEFF) 防止 Excel 打开中文乱码
+            const blob = new Blob([\uFEFF' + content], { type: contentType });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+    </script>
+</body>
+</html>
