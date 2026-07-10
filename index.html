@@ -136,10 +136,57 @@
             color: #666;
         }
 
+        /* 右下角固定联系邮箱样式 */
+        .contact-mail {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(20, 26, 35, 0.85);
+            border: 1px solid rgba(214, 175, 55, 0.3);
+            padding: 10px 16px;
+            border-radius: 30px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .contact-mail a {
+            color: #b0b0b0;
+            text-decoration: none;
+            font-size: 0.9rem;
+            letter-spacing: 0.5px;
+            transition: color 0.2s ease;
+        }
+
+        /* 悬停时的高亮视觉效果 */
+        .contact-mail:hover {
+            border-color: #d4af37;
+            box-shadow: 0 6px 20px rgba(214, 175, 55, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .contact-mail:hover a {
+            color: #d4af37;
+        }
+
         /* 适配手机端 */
         @media (max-width: 600px) {
             .game-item { width: 45%; }
             h1 { font-size: 2rem; }
+            
+            /* 移动端适当缩小邮箱栏，避免遮挡内容 */
+            .contact-mail {
+                bottom: 15px;
+                right: 15px;
+                padding: 8px 12px;
+            }
+            .contact-mail a {
+                font-size: 0.8rem;
+            }
         }
     </style>
 </head>
@@ -202,6 +249,13 @@
                 <span class="platform">Android / iOS</span>
             </div>
         </div>
+    </div>
+
+    <!-- 右下角联系邮箱 -->
+    <div class="contact-mail">
+        <a href="mailto:koengleban@gmail.com">
+            &#9993; koengleban@gmail.com
+        </a>
     </div>
 
     <footer>
