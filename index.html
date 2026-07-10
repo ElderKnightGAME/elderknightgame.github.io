@@ -136,56 +136,153 @@
             color: #666;
         }
 
-        /* 右下角固定联系邮箱样式 */
-        .contact-mail {
+        /* ==================== 右下角悬浮表单样式 ==================== */
+        .contact-widget {
             position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: rgba(20, 26, 35, 0.85);
-            border: 1px solid rgba(214, 175, 55, 0.3);
-            padding: 10px 16px;
-            border-radius: 30px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
-            z-index: 1000;
-            backdrop-filter: blur(5px);
+            bottom: 25px;
+            right: 25px;
+            z-index: 2000;
+            font-family: sans-serif;
+            text-align: left;
+        }
+
+        /* 悬浮触发按钮 */
+        .contact-button {
+            background: #d4af37;
+            color: #0a0e14;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 25px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(214, 175, 55, 0.4);
             transition: all 0.3s ease;
             display: flex;
             align-items: center;
             gap: 8px;
         }
 
-        .contact-mail a {
-            color: #b0b0b0;
-            text-decoration: none;
-            font-size: 0.9rem;
-            letter-spacing: 0.5px;
-            transition: color 0.2s ease;
+        .contact-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(214, 175, 55, 0.6);
+            background: #f5cb42;
         }
 
-        /* 悬停时的高亮视觉效果 */
-        .contact-mail:hover {
-            border-color: #d4af37;
-            box-shadow: 0 6px 20px rgba(214, 175, 55, 0.2);
-            transform: translateY(-2px);
+        /* 表单面板容器 */
+        .contact-panel {
+            position: absolute;
+            bottom: 60px;
+            right: 0;
+            width: 320px;
+            background: rgba(15, 22, 32, 0.98);
+            border: 1px solid rgba(214, 175, 55, 0.4);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.7);
+            backdrop-filter: blur(10px);
+            display: none; /* 默认隐藏 */
+            flex-direction: column;
+            gap: 12px;
         }
 
-        .contact-mail:hover a {
+        .contact-panel.active {
+            display: flex;
+            animation: fadeInUp 0.3s ease forwards;
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            padding-bottom: 8px;
+            margin-bottom: 5px;
+        }
+
+        .panel-header h3 {
+            margin: 0;
             color: #d4af37;
+            font-size: 1.1rem;
+            letter-spacing: 1px;
+        }
+
+        .close-btn {
+            background: transparent;
+            border: none;
+            color: #888;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .close-btn:hover {
+            color: #fff;
+        }
+
+        /* 表单控件输入框 */
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .form-group label {
+            font-size: 0.85rem;
+            color: #aaa;
+        }
+
+        .form-group input, 
+        .form-group textarea {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+            padding: 10px;
+            color: #fff;
+            font-size: 0.9rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .form-group input:focus, 
+        .form-group textarea:focus {
+            border-color: #d4af37;
+        }
+
+        .form-group textarea {
+            resize: none;
+            height: 90px;
+        }
+
+        /* 提交按钮 */
+        .submit-btn {
+            background: transparent;
+            border: 1px solid #d4af37;
+            color: #d4af37;
+            padding: 10px;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-top: 5px;
+        }
+
+        .submit-btn:hover {
+            background: #d4af37;
+            color: #0a0e14;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         /* 适配手机端 */
         @media (max-width: 600px) {
             .game-item { width: 45%; }
             h1 { font-size: 2rem; }
-            
-            /* 移动端适当缩小邮箱栏，避免遮挡内容 */
-            .contact-mail {
-                bottom: 15px;
-                right: 15px;
-                padding: 8px 12px;
-            }
-            .contact-mail a {
-                font-size: 0.8rem;
+            .contact-panel {
+                width: 280px;
+                right: -10px;
             }
         }
     </style>
@@ -251,16 +348,74 @@
         </div>
     </div>
 
-    <!-- 右下角联系邮箱 -->
-    <div class="contact-mail">
-        <a href="mailto:koengleban@gmail.com">
-            &#9993; koengleban@gmail.com
-        </a>
+    <!-- ==================== 右下角联系我们组件 ==================== -->
+    <div class="contact-widget">
+        <!-- 悬浮触发按钮 -->
+        <button class="contact-button" id="formToggleBtn">
+            &#9993; Contact Us
+        </button>
+
+        <!-- 填写信息面板 -->
+        <!-- 这里采用 staticforms 免费无后台转发方案，自动投递到你的目标邮箱 -->
+        <div class="contact-panel" id="contactPanel">
+            <div class="panel-header">
+                <h3>Get In Touch</h3>
+                <button class="close-btn" id="closePanelBtn">&times;</button>
+            </div>
+            
+            <form action="https://api.staticforms.xyz/submit" method="post">
+                <!-- 静态表单密钥与收件邮箱配置 -->
+                <input type="hidden" name="accessKey" value="8f1bd79a-c9d7-4860-af60-038c3de14c9c">
+                <input type="hidden" name="redirectTo" value="https://knightsoathgaming.com"> <!-- 提交成功后跳转回你的主页，可修改 -->
+
+                <!-- 联系人邮箱 -->
+                <div class="form-group">
+                    <label for="email">Your Email</label>
+                    <input type="email" id="email" name="email" placeholder="example@mail.com" required>
+                </div>
+
+                <!-- 联系内容Topic -->
+                <div class="form-group">
+                    <label for="subject">Topic</label>
+                    <input type="text" id="subject" name="subject" placeholder="Business / Feedback / Support" required>
+                </div>
+
+                <!-- 联系内容填写框 -->
+                <div class="form-group">
+                    <label for="message">Message</label>
+                    <textarea id="message" name="message" placeholder="Type your message here..." required></textarea>
+                </div>
+
+                <!-- 发送按钮 -->
+                <button type="submit" class="submit-btn">Send Message</button>
+            </form>
+        </div>
     </div>
 
     <footer>
         &copy; 2026 Knight’s Oath Gaming Limited. All Rights Reserved.
     </footer>
 
+    <!-- 控制面板展开收起的小脚本 -->
+    <script>
+        const formToggleBtn = document.getElementById('formToggleBtn');
+        const closePanelBtn = document.getElementById('closePanelBtn');
+        const contactPanel = document.getElementById('contactPanel');
+
+        formToggleBtn.addEventListener('click', () => {
+            contactPanel.classList.toggle('active');
+        });
+
+        closePanelBtn.addEventListener('click', () => {
+            contactPanel.classList.remove('active');
+        });
+
+        // 点击页面其他区域可以自动收起面板
+        document.addEventListener('click', (e) => {
+            if (!contactPanel.contains(e.target) && !formToggleBtn.contains(e.target)) {
+                contactPanel.classList.remove('active');
+            }
+        });
+    </script>
 </body>
 </html>
